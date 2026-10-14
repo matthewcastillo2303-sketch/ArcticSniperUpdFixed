@@ -90,16 +90,70 @@ local function card(height)
  local f=make("Frame",{Size=UDim2.new(1,0,0,height),BackgroundColor3=C.panel,BorderSizePixel=0},body)
  corner(f,12); stroke(f,C.blue,1,.18); return f
 end
+
 -- Code banner and sniped-code preview
-local codeRow=card(38)
-txt(codeRow,"▤  : spam 3: THANKUVERYON3",UDim2.new(1,-48,1,0),UDim2.fromOffset(13,0),10,C.white)
-btn(codeRow,"▢",UDim2.fromOffset(27,27),UDim2.new(1,-32,.5,-13),function() end,C.row2)
-local code=card(96)
-txt(code,"SNIPED CODE",UDim2.new(1,-95,0,18),UDim2.fromOffset(10,8),9,C.bright,Enum.TextXAlignment.Center)
-local reset=btn(code,"RESET",UDim2.fromOffset(62,25),UDim2.new(1,-73,0,8),function() codeValue.Text="WAITING FOR DEMO TEXT"; status.Text="○  DEMO READY" end,C.row2)
-local codeValue=txt(code,"THANKUVERYON3",UDim2.new(1,-26,0,31),UDim2.fromOffset(13,30),20,C.white,Enum.TextXAlignment.Center)
-local status=make("TextLabel",{Size=UDim2.fromOffset(108,22),Position=UDim2.new(.5,-54,1,-29),BackgroundColor3=C.row2,BorderSizePixel=0,Text="❄  DEMO READY",TextColor3=C.bright,TextSize=9,Font=Enum.Font.GothamBold},code)
-corner(status,11); stroke(status,C.blue,1,.2)
+local codeRow = card(38)
+
+local codeRowText = txt(
+    codeRow,
+    "▤  CODE BUFFER: EMPTY",
+    UDim2.new(1, -48, 1, 0),
+    UDim2.fromOffset(13, 0),
+    10,
+    C.white
+)
+
+local code = card(96)
+
+txt(
+    code,
+    "SNIPED CODE",
+    UDim2.new(1, -95, 0, 18),
+    UDim2.fromOffset(10, 8),
+    9,
+    C.bright,
+    Enum.TextXAlignment.Center
+)
+
+local codeValue = txt(
+    code,
+    "",
+    UDim2.new(1, -26, 0, 31),
+    UDim2.fromOffset(13, 30),
+    20,
+    C.white,
+    Enum.TextXAlignment.Center
+)
+
+local status = make("TextLabel", {
+    Size = UDim2.fromOffset(108, 22),
+    Position = UDim2.new(0.5, -54, 1, -29),
+    BackgroundColor3 = C.row2,
+    BorderSizePixel = 0,
+    Text = "❄  WAITING",
+    TextColor3 = C.bright,
+    TextSize = 9,
+    Font = Enum.Font.GothamBold
+}, code)
+
+corner(status, 11)
+stroke(status, C.blue, 1, 0.2)
+
+local function clearCode()
+    codeValue.Text = ""
+    codeRowText.Text = "▤  CODE BUFFER: EMPTY"
+    status.Text = "❄  CLEARED"
+end
+
+btn(
+    code,
+    "RESET",
+    UDim2.fromOffset(62, 25),
+    UDim2.new(1, -73, 0, 8),
+    clearCode,
+    C.row2
+)
+
 
 local function toggleRow(title,subtitle,initial)
  local r=card(44)
@@ -148,9 +202,13 @@ local function foot(title,sub,icon,fn)
  txt(b,sub,UDim.new(1,-33,0,14),UDim2.fromOffset(31,21),7,C.muted)
  b.Activated:Connect(function() if fn then fn() end end)
 end
-foot("FEEDBACK","send a note","▣",function() end)
-foot("CLEAR BOX","reset textbox","—",function() codeValue.Text=""; status.Text="❄  CLEARED" end)
-foot("RESET","clear buffer","⟳",function() codeValue.Text="THANKUVERYON3"; status.Text="❄  DEMO READY" end)
+
+foot("CLEAR BOX", "clear code", "—", clearCode)
+
+foot("RESET", "clear buffer", "⟳", function()
+    clearCode()
+    status.Text = "❄  SETTINGS RESET"
+end)
 
 -- Subtle decorative snowflakes, purely visual.
 for i=1,7 do
