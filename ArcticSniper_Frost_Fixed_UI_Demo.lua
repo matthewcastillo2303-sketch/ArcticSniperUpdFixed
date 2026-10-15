@@ -1,6 +1,6 @@
 -- ARCTIC SNIPER V2 — COMPACT OXIDE-INSPIRED FROST UI
--- Visual UI demo only. Toggles are local previews; this does not read live game events,
--- redeem codes, automate gameplay, or send Discord/webhook messages.
+-- UI and announcement-text parser. Text must be supplied/pasted; this does not read
+-- arbitrary on-screen announcements or redeem codes in third-party games.
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -107,6 +107,19 @@ local codeRowText = txt(
 
 local code = card(96)
 
+-- Announcement parser: processes text supplied by an authorized source or pasted by the user.
+local function extractAnnouncedCode(text)
+    if typeof(text) ~= "string" then return nil end
+    local lower = string.lower(text)
+    local startAt, phraseEnd = lower:find("use%s+code")
+    if not startAt then startAt, phraseEnd = lower:find("the%s+code%s+is") end
+    if not startAt then return nil end
+    local remainder = text:sub(phraseEnd + 1):gsub("^%s*[:%-]?%s*", "")
+    remainder = remainder:gsub("[%s%.!?,;]+$", "")
+    if remainder == "" then return nil end
+    return remainder
+end
+
 txt(
     code,
     "SNIPED CODE",
@@ -146,6 +159,41 @@ local function clearCode()
     codeRowText.Text = "▤  CODE BUFFER: EMPTY"
     status.Text = "❄  CLEARED"
 end
+
+local function processAnnouncementText(text)
+    local found = extractAnnouncedCode(text)
+    if not found then
+        status.Text = "❄  NO CODE FOUND"
+        return false
+    end
+    codeValue.Text = found
+    codeRowText.Text = "▤  CODE BUFFER: CODE FOUND"
+    status.Text = "❄  CODE CAPTURED"
+    return true
+end
+
+local announcementInput = make("TextBox", {
+    Name = "AnnouncementTextInput",
+    Size = UDim2.new(1, -20, 0, 28),
+    Position = UDim2.new(0, 10, 1, -36),
+    BackgroundColor3 = C.row,
+    BorderSizePixel = 0,
+    Text = "",
+    PlaceholderText = "Paste announcement text here",
+    PlaceholderColor3 = C.muted,
+    TextColor3 = C.white,
+    TextSize = 10,
+    Font = Enum.Font.Gotham,
+    ClearTextOnFocus = false
+}, code)
+corner(announcementInput, 7)
+stroke(announcementInput, C.blue, 1, .35)
+announcementInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed and announcementInput.Text ~= "" then
+        processAnnouncementText(announcementInput.Text)
+        announcementInput.Text = ""
+    end
+end)
 
 btn(
     code,
