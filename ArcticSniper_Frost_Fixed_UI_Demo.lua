@@ -40,10 +40,12 @@ local main=make("Frame",{Name="Main",AnchorPoint=Vector2.new(.5,.5),Position=UDi
  Size=UDim2.fromOffset(350,570),BackgroundColor3=C.bg,BorderSizePixel=0,Active=true},gui)
  corner(main,16); stroke(main,C.blue,1.6,.04)
  local scale=make("UIScale",{Scale=1},main)
+ local preferredScale=0.8
  local function fit()
   local cam=workspace.CurrentCamera; if not cam then return end
   local v=cam.ViewportSize
-  scale.Scale=math.clamp(math.min((v.X-24)/350,(v.Y-30)/570,1),.48,1)
+  local viewportLimit=math.clamp(math.min((v.X-24)/350,(v.Y-30)/570,1),.48,1)
+  scale.Scale=math.min(preferredScale,viewportLimit)
  end
  fit(); if workspace.CurrentCamera then workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit) end
 
@@ -174,7 +176,7 @@ toggleRow("auto scope","demo toggle • phrase detection preview",true)
 toggleRow("spam redeem","visual toggle only • no redemption",false)
 toggleRow("hide user","visual toggle only • no webhook",false)
 
-local function optionRow(title,subtitle,values,default)
+local function optionRow(title,subtitle,values,default,onChange)
  local r=card(44)
  txt(r,"❄",UDim2.fromOffset(22,30),UDim2.fromOffset(8,7),17,C.bright,Enum.TextXAlignment.Center)
  txt(r,title,UDim.new(.43,0,0,18),UDim2.fromOffset(34,4),10,C.white)
@@ -185,12 +187,19 @@ local function optionRow(title,subtitle,values,default)
   local w=1/#values
   local b=make("TextButton",{Size=UDim2.new(w,-2,1,-4),Position=UDim2.new((i-1)*w,1,0,2),BackgroundColor3=v==selected and C.blue or C.row,BorderSizePixel=0,Text=tostring(v),TextColor3=C.white,TextSize=9,Font=Enum.Font.GothamBold,AutoButtonColor=false},holder)
   corner(b,6); b.Activated:Connect(function()
-   selected=v; for _,x in ipairs(holder:GetChildren()) do if x:IsA("TextButton") then x.BackgroundColor3=x.Text==tostring(selected) and C.blue or C.row end end
+   selected=v
+   for _,x in ipairs(holder:GetChildren()) do
+    if x:IsA("TextButton") then x.BackgroundColor3=x.Text==tostring(selected) and C.blue or C.row end
+   end
+   if onChange then onChange(v) end
   end)
  end
 end
 optionRow("auto submit","preview count per code",{1,2,3,4,5},5)
-optionRow("ui scale","visual size preset",{60,70,80,90,100},80)
+optionRow("ui scale","visual size preset",{60,70,80,90,100},80,function(v)
+ preferredScale=v/100
+ fit()
+end)
 
 local footer=make("Frame",{Size=UDim2.new(1,0,0,46),BackgroundTransparency=1},body)
 local footLayout=make("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,Padding=UDim.new(0,7),SortOrder=Enum.SortOrder.LayoutOrder},footer)
